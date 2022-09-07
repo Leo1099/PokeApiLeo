@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKEAPI LEO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 70%;
+            margin-bottom: 40px;
+            margin-top: 20px;
+        }
+
+        .poke-card,
+        .poke-card-back {
+            border-radius: 10px;
+            padding: 10px;
+            background-color: rgb(130, 252, 136);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .poke-card,
+        .poke-card-back {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            text-align: center;
+            background-color: rgb(175, 255, 240);
+        }
+
+        .ability-container {
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            font-weight: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="https://cdn-icons-png.flaticon.com/128/361/361998.png" style="width: 70px; height: 70px;">
+    <h1>POKEAPI LEO</h1>
+    <div class="container"></div>
+    <div id="botones">
+        <button class="btn btn-outline-primary"
+            onclick="obtenerPokemons()">Anterior</button>
+        <button class="btn btn-outline-primary"
+            onclick="obtenerPokemons()">Siguiente</button>
+    </div>
+
+</body>
+<script>
+    const container = document.querySelector('.container');
+
+    function fetchPoke(id) {
+        fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`)
+            .then((res) => res.json());
+    }
+
+    function numPokemons(numero) {
+        for (let i = 1; i <= numero; i++) {
+            fetchPoke(i);
+        }
+    }
+
+    numPokemons(20)
+
+    function mostrarHabilidades(abilities) {
+        const habilidad = document.createElement("div");
+        habilidad.classList.add("ability-container");
+
+        for (let i = 0; i < 2; i++) {
+            const abi = abilities[i];
+
+            const abiCont = document.createElement("abi-container");
+            abiCont.classList.add("abi-container");
+
+            const abilityName = document.createElement("h5");
+            abilityName.textContent = abi.ability.name;
+
+            abiCont.appendChild(abilityName);
+
+            habilidad.appendChild(abiCont);
+        }
+
+        return habilidad;
+    }
+
+
+    const obtenerPokemons = (url) => {
+        let botones = document.getElementById("botones");
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                for (let i of data.results) {
+                    fetch(i.url)
+                        .then(response => response.json())
+                        .then(info => {
+                            const { abilities } = info;
+                            let habilidades = abilities.map((habi) => {
+                                return habi.ability.name
+                            })
+                            const card = document.createElement('div');
+                            card.classList.add('poke-card');
+
+                            const imaContainer = document.createElement('div');
+                            imaContainer.classList.add('poke-ima');
+
+                            const ima = document.createElement('img');
+                            ima.src = info.sprites.front_default
+                            imaContainer.appendChild(ima);
+
+                            const name = document.createElement('h4');
+                            name.classList.add('poke-name');
+                            name.textContent = info.name
+
+                            card.appendChild(name);
+                            card.appendChild(imaContainer);
+                            card.appendChild(mostrarHabilidades(info.abilities))
+                            container.appendChild(card);
+                        });
+
+                }
+
+                botones.innerHTML = (data.previous) ? `<button class="btn btn-outline-primary" onclick="obtenerPokemons('${data.previous}')" > Atrás </button>` : "";
+                botones.innerHTML += (data.next) ? `<button class="btn btn-outline-primary" onclick="obtenerPokemons('${data.next}')"> Siguiente </button>` : "";
+
+            }).catch(error => console.error(error))
+
+    }
+
+    obtenerPokemons("https://pokeapi.co/api/v2/pokemon");
+
+
+
+</script>
+
+</html>
